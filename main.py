@@ -10,7 +10,7 @@ def sin(deg):
 
 
 def getCurrentJulianDate():
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     return getJulianDateFromDateTime(now)
 
 
@@ -42,7 +42,7 @@ def getEarthMeanAnonmaly(julianDate):
 
 def getPlanetMeanAnomaly(degrees, degreesPerDay, julianDate):
     j2000 = 2451545
-    return (degrees + degreesPerDay * (julianDate - j2000)) % 360
+    return (degrees + degreesPerDay * (math.floor(julianDate) - j2000)) % 360
 
 
 def getCenterForEarth(mean):
@@ -53,19 +53,30 @@ def getCenterForEarth(mean):
 def getCenter(CTerms, mean):
     return sum([t * sin(i * mean) for i, t in enumerate(CTerms, 1)])
 
+# The ecliptic longitude of Earth as seen from the Sun
+def getEarthEclipticLongitude():
+    return 102.9373, 23.4393
 
+
+def getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E, e):
+    nu = meanAnomaly + center
+    olambda = nu + E
+    lambdaSun = olambda + 180.0
+    return lambdaSun % 360.0
 # Implementation is based on
 # http://aa.quae.nl/en/reken/zonpositie.html
 def main():
     # 1 time
     julianDate = getCurrentJulianDate()
+    print julianDate
     # 2 The mean anomaly
     meanAnomaly = getEarthMeanAnonmaly(julianDate)
+    #meanAnomaly = 87.1807
     # 3 The equation of center
     # True anomaly = Mean Anomaly + center
     center = getCenterForEarth(meanAnomaly)
-    print center
-
-
+    E, e = getEarthEclipticLongitude()
+    sunLambda = getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E, e)
+    print sunLambda
 if __name__ == '__main__':
     main()
