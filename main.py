@@ -10,7 +10,7 @@ def sin(deg):
 
 
 def getCurrentJulianDate():
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now()
     return getJulianDateFromDateTime(now)
 
 
@@ -21,16 +21,17 @@ def getJulianDateFromDateTime(date):
     y = date.year + 4800 - a
     m = date.month + 12 * a - 3
 
-    terms = [0] * 9
-    terms[0] = (153 * m + 2) / 5
-    terms[1] = 365 * y
-    terms[2] = y / 4
-    terms[3] = -y / 100
-    terms[4] = y / 400
-    terms[5] = -32045
-    terms[6] = float(date.time().hour - 12) / 24.0
-    terms[7] = float(date.time().minute) / 1440.0
-    terms[8] = float(date.time().second) / 86400.0
+    terms = [0] * 10
+    terms[0] = date.day
+    terms[1] = (153 * m + 2) / 5
+    terms[2] = 365 * y
+    terms[3] = y / 4
+    terms[4] = -y / 100
+    terms[5] = y / 400
+    terms[6] = -32045
+    terms[7] = float(date.time().hour - 12) / 24.0
+    terms[8] = float(date.time().minute) / 1440.0
+    terms[9] = float(date.time().second) / 86400.0
     return sum(terms)
 
 
@@ -64,7 +65,6 @@ def main():
     # 3 The equation of center
     # True anomaly = Mean Anomaly + center
     center = getCenterForEarth(meanAnomaly)
-    print center
 
 
 if __name__ == '__main__':
