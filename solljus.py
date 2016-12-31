@@ -3,6 +3,7 @@ import datetime
 import constants as c
 
 
+# Sin with degrees as input
 def sin(deg):
     return math.sin(math.radians(deg))
 
@@ -33,46 +34,28 @@ def getJulianDateFromDateTime(date):
     return sum(terms)
 
 
-def getEarthMeanAnonmaly(julianDate):
-
-    return getPlanetMeanAnomaly(EarthDeg, EarthDegPerDay, julianDate)
-
-
-def getPlanetMeanAnomaly(degrees, degreesPerDay, julianDate):
+def getPlanetMeanAnomaly(julianDate, planet='Earth'):
+    degrees, degreesPerDay = c.planetToMeanAnomaly[planet]
     j2000 = 2451545
     return (degrees + degreesPerDay * (math.floor(julianDate) - j2000)) % 360
 
 
-def getCenterForEarth(mean):
-    CTerms = [1.9148, 0.02, 0.0003]
-    return getCenter(CTerms, mean)
-
-
-def getCenter(CTerms, mean):
+def getCenter(mean, planet='Earth'):
+    CTerms = c.planetToCenterCoefficients[planet]
     return sum([t * sin(i * mean) for i, t in enumerate(CTerms, 1)])
 
 
-# The ecliptic longitude of Earth as seen from the Sun
-def getEarthEclipticLongitude():
-    return 102.9373, 23.4393
-
-
-def getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E):
+def getEclipticalCoordinates(meanAnomaly, center, planet='Earth'):
+    E = c.planetToPeriheion[planet]
     nu = meanAnomaly + center
     olambda = nu + E
-    lambdaSun = olambda + 180.0
-    return lambdaSun % 360.0
+    sunLambda = olambda + 180.0
+    return sunLambda % 360.0
 
 
-def getEarthEquatorialCoordinates(sunLambda):
-    A = [-2.4657, 0.0529, -0.0014]
-    Ea = 0.0003
-    D = [22.7908, 0.5991, 0.0492]
-    Ed = 0.0003
-    return getEquatorialCoordinates(A, D, sunLambda)
-
-
-def getEquatorialCoordinates(A, D, sunLambda):
+def getEquatorialCoordinates(sunLambda, planet='Earth'):
+    A = c.planetToAscension[planet]
+    D = c.planetToDeclination[planet]
     alfa = sunLambda + sum([a * sin(i * 2 * sunLambda) for i, a in enumerate(A, 1)])
     delta = sum([D[i] * pow(sin(sunLambda), i * 2 + 1) for i in range(len(D))])
     return alfa, delta
@@ -80,36 +63,30 @@ def getEquatorialCoordinates(A, D, sunLambda):
 
 # Implementation is based on
 # http://aa.quae.nl/en/reken/zonpositie.html
-def main():
+def calculatePositionOfTheSun(planet='Earth'):
     # 1 time
     julianDate = getCurrentJulianDate()
 
     # 2 The mean anomaly
-    meanAnomaly = getEarthMeanAnonmaly(julianDate)
+    meanAnomaly = getPlanetMeanAnomaly(julianDate, planet)
 
     # 3 The equation of center
-    center = getCenterForEarth(meanAnomaly)
-
-    # 4 The Perihelion and the Obliquity of the Ecliptic
-    E, e = getEarthEclipticLongitude()
+    center = getCenter(meanAnomaly, planet)
 
     # 5 The Ecliptical Coordinates
-    sunLambda = getEclipticalCoordinatesRelativeToEarth(meanAnomaly,
-                                                        center,
-                                                        E)
+    sunLambda = getEclipticalCoordinates(meanAnomaly, center, planet)
+
     # 6 The Equatorial coordinates
-    alfa, delta = getEarthEquatorialCoordinates(sunLambda)
+    alfa, delta = getEquatorialCoordinates(sunLambda, planet)
 
     # 7 The Observer
-    # Sidereal time is the right ascension(think longitude for the sky) that is on the
-    # celestial meridian at that moment.
+    # Sidereal time is the right ascension(think longitude for the sky)
+    # that is on the celestial meridian at that moment.
     # Hour angle indicates gow long ago(measured in sidereal time)
     # the celestial body passed through the celestial meridian
     # siderealTime, hourAngle = getSiderealTimeAndHourAngle(julianDate,
     #                                                            LONGITUDE,
     #                                                            LATITUDE)
 
-
-
 if __name__ == '__main__':
-    main()
+    calculatePositionOfTheSun()
