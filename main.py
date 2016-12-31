@@ -1,8 +1,6 @@
 import math
 import datetime
-
-LONGITUDE = 57.711338
-LATITUDE = 12.022330
+import constants as c
 
 
 def sin(deg):
@@ -36,8 +34,7 @@ def getJulianDateFromDateTime(date):
 
 
 def getEarthMeanAnonmaly(julianDate):
-    EarthDeg = 357.5291
-    EarthDegPerDay = 0.98560028
+
     return getPlanetMeanAnomaly(EarthDeg, EarthDegPerDay, julianDate)
 
 
@@ -54,32 +51,65 @@ def getCenterForEarth(mean):
 def getCenter(CTerms, mean):
     return sum([t * sin(i * mean) for i, t in enumerate(CTerms, 1)])
 
+
 # The ecliptic longitude of Earth as seen from the Sun
 def getEarthEclipticLongitude():
     return 102.9373, 23.4393
 
 
-def getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E, e):
+def getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E):
     nu = meanAnomaly + center
     olambda = nu + E
     lambdaSun = olambda + 180.0
     return lambdaSun % 360.0
+
+
+def getEarthEquatorialCoordinates(sunLambda):
+    A = [-2.4657, 0.0529, -0.0014]
+    Ea = 0.0003
+    D = [22.7908, 0.5991, 0.0492]
+    Ed = 0.0003
+    return getEquatorialCoordinates(A, D, sunLambda)
+
+
+def getEquatorialCoordinates(A, D, sunLambda):
+    alfa = sunLambda + sum([a * sin(i * 2 * sunLambda) for i, a in enumerate(A, 1)])
+    delta = sum([D[i] * pow(sin(sunLambda), i * 2 + 1) for i in range(len(D))])
+    return alfa, delta
+
+
 # Implementation is based on
 # http://aa.quae.nl/en/reken/zonpositie.html
 def main():
     # 1 time
     julianDate = getCurrentJulianDate()
-    print julianDate
+
     # 2 The mean anomaly
     meanAnomaly = getEarthMeanAnonmaly(julianDate)
-    #meanAnomaly = 87.1807
+
     # 3 The equation of center
-    # True anomaly = Mean Anomaly + center
     center = getCenterForEarth(meanAnomaly)
 
+    # 4 The Perihelion and the Obliquity of the Ecliptic
     E, e = getEarthEclipticLongitude()
-    sunLambda = getEclipticalCoordinatesRelativeToEarth(meanAnomaly, center, E, e)
-    print sunLambda
+
+    # 5 The Ecliptical Coordinates
+    sunLambda = getEclipticalCoordinatesRelativeToEarth(meanAnomaly,
+                                                        center,
+                                                        E)
+    # 6 The Equatorial coordinates
+    alfa, delta = getEarthEquatorialCoordinates(sunLambda)
+
+    # 7 The Observer
+    # Sidereal time is the right ascension(think longitude for the sky) that is on the
+    # celestial meridian at that moment.
+    # Hour angle indicates gow long ago(measured in sidereal time)
+    # the celestial body passed through the celestial meridian
+    # siderealTime, hourAngle = getSiderealTimeAndHourAngle(julianDate,
+    #                                                            LONGITUDE,
+    #                                                            LATITUDE)
+
+
 
 if __name__ == '__main__':
     main()
