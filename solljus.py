@@ -1,5 +1,6 @@
 import math
 import datetime
+import pytz
 import constants as c
 
 
@@ -8,15 +9,10 @@ def sin(deg):
     return math.sin(math.radians(deg))
 
 
-def getCurrentJulianDate():
-    now = datetime.datetime.now()
-    return getJulianDateFromDateTime(now)
-
-
 # Julian date based on algorithm from
 # https://en.wikipedia.org/wiki/Julian_day
 def getJulianDateFromDateTime(date):
-    a = int((14 - date.month)/12)
+    a = (14 - date.month)/12
     y = date.year + 4800 - a
     m = date.month + 12 * a - 3
 
@@ -25,7 +21,7 @@ def getJulianDateFromDateTime(date):
     terms[1] = (153 * m + 2) / 5
     terms[2] = 365 * y
     terms[3] = y / 4
-    terms[4] = -y / 100
+    terms[4] = -(y / 100)
     terms[5] = y / 400
     terms[6] = -32045
     terms[7] = float(date.time().hour - 12) / 24.0
@@ -63,9 +59,14 @@ def getEquatorialCoordinates(sunLambda, planet='Earth'):
 
 # Implementation is based on
 # http://aa.quae.nl/en/reken/zonpositie.html
-def calculatePositionOfTheSun(planet='Earth'):
+def calculatePositionOfTheSun(planet='Earth',
+                              longitude=57.711338,
+                              latitude=12.022330):
+
     # 1 time
-    julianDate = getCurrentJulianDate()
+    now = datetime.datetime.utcnow()
+    # debugExample = datetime.datetime(2004, 04, 1, 12, 00, 00, 00, tzinfo=pytz.utc)
+    julianDate = getJulianDateFromDateTime(now)
 
     # 2 The mean anomaly
     meanAnomaly = getPlanetMeanAnomaly(julianDate, planet)
@@ -85,8 +86,8 @@ def calculatePositionOfTheSun(planet='Earth'):
     # Hour angle indicates gow long ago(measured in sidereal time)
     # the celestial body passed through the celestial meridian
     # siderealTime, hourAngle = getSiderealTimeAndHourAngle(julianDate,
-    #                                                            LONGITUDE,
-    #                                                            LATITUDE)
+    #                                                       longitude,
+    #                                                       latitude)
 
 if __name__ == '__main__':
     calculatePositionOfTheSun()

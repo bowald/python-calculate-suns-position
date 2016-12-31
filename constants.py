@@ -1,6 +1,3 @@
-LONGITUDE = 57.711338
-LATITUDE = 12.022330
-
 # Tables comes from http://aa.quae.nl/en/reken/zonpositie.html
 # Wich cites International Astronomical Union(IAU) 2011
 
