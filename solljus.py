@@ -9,6 +9,29 @@ def sin(deg):
     return math.sin(math.radians(deg))
 
 
+# Cos with degrees as input
+def cos(deg):
+    return math.cos(math.radians(deg))
+
+
+# Tan with degrees as input
+def tan(deg):
+    return math.tan(math.radians(deg))
+
+
+# Arcsin with  degrees as input
+def asin(x):
+    return math.degrees(math.asin(x))
+
+
+def acos(x):
+    return math.degrees(math.acos(x))
+
+
+def atan(x):
+    return math.degrees(math.atan(x))
+
+
 # Julian date based on algorithm from
 # https://en.wikipedia.org/wiki/Julian_day
 def getJulianDateFromDateTime(date):
@@ -32,8 +55,7 @@ def getJulianDateFromDateTime(date):
 
 def getPlanetMeanAnomaly(julianDate, planet='Earth'):
     degrees, degreesPerDay = c.planetToMeanAnomaly[planet]
-    j2000 = 2451545
-    return (degrees + degreesPerDay * (math.floor(julianDate) - j2000)) % 360
+    return (degrees + degreesPerDay * (math.floor(julianDate) - c.j2000)) % 360
 
 
 def getCenter(mean, planet='Earth'):
@@ -57,16 +79,39 @@ def getEquatorialCoordinates(sunLambda, planet='Earth'):
     return alfa, delta
 
 
+def getAzimutandAltitude(julianDate,
+                         alfa,
+                         delta,
+                         longitude,
+                         latitude,
+                         planet='Earth'):
+
+    theta0, theta1 = c.planetToSiderealTimeCoefficients[planet]
+    # Longitude should be given as east(if it given in degrees west, negate it)
+    siderealTime = (theta0 + theta1 * (julianDate - c.j2000) + longitude) % 360
+    H = siderealTime - alfa
+
+    a0 = sin(H)
+    a1 = cos(H) * sin(latitude) - tan(delta) * cos(latitude)
+    A = atan(a0 / a1)
+
+    h = asin(sin(latitude) * sin(delta) + cos(latitude) * cos(delta) * cos(H))
+    print 'h', h
+    return A, h
+
+
 # Implementation is based on
 # http://aa.quae.nl/en/reken/zonpositie.html
 def calculatePositionOfTheSun(planet='Earth',
                               longitude=57.711338,
                               latitude=12.022330):
 
+    debugExample = datetime.datetime(2004, 04, 1, 12, 00, 00, 00, tzinfo=pytz.utc)
+    debugLongitude = 5.0
+    debugLatitude = 52.0
     # 1 time
     now = datetime.datetime.utcnow()
-    # debugExample = datetime.datetime(2004, 04, 1, 12, 00, 00, 00, tzinfo=pytz.utc)
-    julianDate = getJulianDateFromDateTime(now)
+    julianDate = getJulianDateFromDateTime(debugExample)
 
     # 2 The mean anomaly
     meanAnomaly = getPlanetMeanAnomaly(julianDate, planet)
@@ -85,9 +130,12 @@ def calculatePositionOfTheSun(planet='Earth',
     # that is on the celestial meridian at that moment.
     # Hour angle indicates gow long ago(measured in sidereal time)
     # the celestial body passed through the celestial meridian
-    # siderealTime, hourAngle = getSiderealTimeAndHourAngle(julianDate,
-    #                                                       longitude,
-    #                                                       latitude)
+    sunAzimuth, sunAltitude = getAzimutandAltitude(julianDate,
+                                                   alfa,
+                                                   delta,
+                                                   debugLongitude,
+                                                   debugLatitude,
+                                                   planet)
 
 if __name__ == '__main__':
     calculatePositionOfTheSun()

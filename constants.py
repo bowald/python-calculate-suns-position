@@ -15,6 +15,9 @@ planetToMeanAnomaly = {
     'Pluto': (14.882, 0.00396)
 }
 
+# julian date for 1 Jan 2000
+j2000 = 2451545
+
 # Table 2: Planets: Equation of Center
 # Each planets coefficients, the more coefficients needed
 # the more it devieates from a perfect sphere
